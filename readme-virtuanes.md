@@ -53,6 +53,12 @@ It also runs on your New 3DS as well!
 
 *VirtuaNES:*
 
+### v1.03
+- Builds with current devkitARM (libctru 2.x) on Linux, macOS and Windows.
+- The top screen always runs in 2D mode (the 3D slider no longer changes it).
+- Runs in the Azahar and Citra emulators (without sound).
+- The CIA now has a title version (1.0.3), so it installs as an upgrade of older versions.
+
 ### v1.02
 - Fixed bug in MMC5 mapper that was causing Castlevania 3's graphics to corrupt.
 - Optimized rendering to 16-bit buffer to reduce cache misses, and minor optimizations for MMC5 rendering.

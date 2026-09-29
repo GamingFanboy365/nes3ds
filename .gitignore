@@ -1,7 +1,31 @@
+# Build output
 build/*
 releases/*
 *.3dsx
 *.cia
 *.elf
-.azahar/
+*.smdh
 *.map
+
+# Emulator profiles, screenshots and logs from tools/azahar
+.azahar/
+
+# ROMs, BIOS images and the files VirtuaNES writes next to them (saves,
+# save states, per-game settings and cheats). Never commit these.
+*.[nN][eE][sS]
+*.[fF][dD][sS]
+*.[nN][sS][fF]
+*.[uU][nN][fF]
+*.[uU][nN][iI][fF]
+*.[zZ][iI][pP]
+*.7[zZ]
+*.[rR][oO][mM]
+*.[sS][aA][vV]
+*.[vV][tT][dD]
+*.[cC][hH][xX]
+*.[cC][fF][gG]
+*.[sS][tT][0-9]
+
+# OS junk
+Thumbs.db
+.DS_Store
