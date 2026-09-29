@@ -1,0 +1,44 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: tools/build.sh
+
+      - name: Pull Azahar
+        run: docker pull -q linuxserver/azahar:latest
+
+      # Boots the .3dsx and the installed .cia in Azahar with a small test
+      # ROM, and checks that it renders and takes input.
+      - name: Smoke test in Azahar
+        run: tools/azahar/smoketest.py
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: virtuanes_3ds
+          path: |
+            virtuanes_3ds.3dsx
+            virtuanes_3ds.cia
+            virtuanes_3ds.smdh
+            virtuanes_3ds_top.png
+
+      - name: Upload smoke test screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoketest
+          path: .azahar/smoketest/
+          include-hidden-files: true
+          if-no-files-found: ignore

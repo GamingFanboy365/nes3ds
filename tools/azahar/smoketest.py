@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 #
 # End-to-end check of the build and the emulator setup: generates a tiny
-# NROM test ROM, runs it in Azahar and checks the colour on screen.
+# NROM test ROM, runs it in Azahar with both the .3dsx and the .cia (which
+# gets installed first) and checks the colour on screen.
 #
 # The ROM fills the screen with palette colour $21 (light blue), and
 # switches to $16 (red) while NES A is held. VirtuaNES maps 3DS A to NES A
@@ -18,6 +19,7 @@ import zlib
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 OUT = os.path.join(ROOT, '.azahar', 'smoketest')
+APPS = ['virtuanes_3ds.3dsx', 'virtuanes_3ds.cia']
 
 
 def assemble():
@@ -116,32 +118,39 @@ def read_png(path):
     return rows
 
 
-def pixel(name, x, y):
-    rows = read_png(os.path.join(OUT, name + '.png'))
+def pixel(out, name, x, y):
+    rows = read_png(os.path.join(out, name + '.png'))
     return tuple(rows[y][x * 3:x * 3 + 3])
 
 
+def check(app, rom):
+    out = os.path.join(OUT, os.path.splitext(app)[1][1:])
+    os.makedirs(out, exist_ok=True)
+    # A at the ROM menu loads the only ROM on the SD card. Installing the
+    # .cia adds the "Nintendo 3DS" folder, which is listed before it.
+    select = ['key:down', 'wait:1'] if app.endswith('.cia') else []
+    subprocess.run([
+        os.path.join(ROOT, 'tools', 'azahar', 'run.sh'),
+        '-a', os.path.join(ROOT, app), '-r', rom, '-o', out, '-t', '180', '--',
+        'wait:10', 'shot:menu'] + select + ['key:a', 'wait:8', 'shot:idle',
+        'down:a', 'wait:2', 'shot:pressed', 'up:a',
+    ], check=True)
+
+    # Middle of the NES picture on the top screen (256x240 centred in 400x240).
+    idle, pressed = pixel(out, 'idle', 200, 120), pixel(out, 'pressed', 200, 120)
+    print('%s: idle rgb%s (want light blue), pressed rgb%s (want red)' % (app, idle, pressed))
+    ok = idle[2] > 150 and idle[0] < 150 and pressed[0] > 150 and pressed[2] < 100
+    print('%s: %s - screenshots in %s' % (app, 'PASS' if ok else 'FAIL', out))
+    return ok
+
+
 def main():
-    os.makedirs(OUT, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
         rom = os.path.join(tmp, 'smoketest.nes')
         with open(rom, 'wb') as f:
             f.write(assemble())
-        # The first A at the ROM menu loads the only ROM on the SD card.
-        subprocess.run([
-            os.path.join(ROOT, 'tools', 'azahar', 'run.sh'),
-            '-r', rom, '-o', OUT, '-t', '180', '--',
-            'wait:10', 'shot:menu', 'key:a', 'wait:8', 'shot:idle',
-            'down:a', 'wait:2', 'shot:pressed', 'up:a',
-        ], check=True)
-
-    # Middle of the NES picture on the top screen (256x240 centred in 400x240).
-    idle, pressed = pixel('idle', 200, 120), pixel('pressed', 200, 120)
-    print('idle    rgb%s (want light blue)' % (idle,))
-    print('pressed rgb%s (want red)' % (pressed,))
-    ok = idle[2] > 150 and idle[0] < 150 and pressed[0] > 150 and pressed[2] < 100
-    print('PASS' if ok else 'FAIL', '- screenshots in', OUT)
-    return 0 if ok else 1
+        results = [check(app, rom) for app in APPS]
+    return 0 if all(results) else 1
 
 
 if __name__ == '__main__':
