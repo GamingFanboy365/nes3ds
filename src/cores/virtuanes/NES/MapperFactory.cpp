@@ -6,25 +6,25 @@
 /*                                               last modify ----/--/-- */
 /*----------------------------------------------------------------------*/
 #define	WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#include <Windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "DebugOut.h"
-#include "typedef.h"
-#include "macro.h"
+#include "TypeDef.h"
+#include "Macro.h"
 
 #include "3dsdbg.h"
-#include "nes.h"
-#include "mmu_fceux.h" 
-#include "mmu.h" 
-#include "cpu.h"
-#include "ppu.h"
-#include "apu.h"
-#include "pad.h"
-#include "rom.h"
+#include "Nes.h"
+#include "MMU_FCEUX.h" 
+#include "MMU.h" 
+#include "CPU.h"
+#include "PPU.h"
+#include "APU.h"
+#include "PAD.h"
+#include "ROM.h"
 
-#include "mapper.h"
+#include "Mapper.h"
 
 #include "Config.h"
 

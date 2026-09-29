@@ -3,6 +3,7 @@
 #define _3DSGPU_H_
 
 #include <3ds.h>
+#include "3dsgpulegacy.h"
 #include "3dsmatrix.h"
 #include "3dstypes.h"
 
@@ -61,7 +62,7 @@ typedef struct
 
 typedef struct
 {
-    GSPGPU_FramebufferFormats   screenFormat;
+    GSPGPU_FramebufferFormat    screenFormat;
     GPU_TEXCOLOR                frameBufferFormat;
 
     u32                 *frameBuffer;
@@ -97,8 +98,6 @@ extern SGPU3DS GPU3DS;
 
 bool gpu3dsInitialize();
 void gpu3dsFinalize();
-
-void gpu3dsWaitEvent(GSPGPU_Event id, u64 timeInMilliseconds);
 
 void gpu3dsSetParallaxBarrier(bool enable);
 void gpu3dsCheckSlider();

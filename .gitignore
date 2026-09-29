@@ -3,3 +3,5 @@ releases/*
 *.3dsx
 *.cia
 *.elf
+.azahar/
+*.map

@@ -40,8 +40,8 @@
 #include "APU.h"
 #include "PPU.h"
 #include "ROM.h"
-#include "NES.h"
-#include "Pad.h"
+#include "Nes.h"
+#include "PAD.h"
 #include "Config.h"
 #include "palette.h"
 
@@ -492,7 +492,7 @@ bool impl3dsLoadROM(char *romFilePath)
 	// compute a sample rate closes to 32000 kHz.
 	//
     int nesSampleRate = 32000;
-    u8 new3DS = false;
+    bool new3DS = false;
     APT_CheckNew3DS(&new3DS);
 
     // Lagrange Point and Old 3DS, we need to use a lower sample rate

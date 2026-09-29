@@ -16,9 +16,9 @@ extern char romFileNameLastSelected[];
 //---------------------------------------------------------
 // FPS behavior 
 //---------------------------------------------------------
-#define WAIT_FULL 0
-#define WAIT_HALF 1
-#define WAIT_NONE 2
+#define EMU_WAIT_FULL 0
+#define EMU_WAIT_HALF 1
+#define EMU_WAIT_NONE 2
 
 
 
