@@ -1,6 +1,8 @@
 # Mapper support
 
-VirtuaNES for 3DS reads the iNES 1.0 header, so it knows mapper numbers 0 to 255. Of those, `CreateMapper()` in `src/cores/virtuanes/NES/MapperFactory.cpp` handles 186, plus 20 UNIF boards and the NSF player. This page lists the other 70.
+VirtuaNES for 3DS reads the iNES 1.0 header, so it knows mapper numbers 0 to 255. Of those, `CreateMapper()` in `src/cores/virtuanes/NES/MapperFactory.cpp` handles 194, plus 20 UNIF boards and the NSF player. This page lists the other 62.
+
+Version 1.03 added mappers 152, 153, 154, 155, 157, 159, 207 and 210. Each has a generated test ROM in `tools/azahar/mappertest.py` that checks its bank switching and mirroring in the emulator (see the readme); that's also the quickest way to test a new mapper.
 
 The makers come from the icons in the NESdev wiki's iNES 1.0 mapper grid (the September 2026 export of the [Mapper](https://www.nesdev.org/wiki/Mapper) page). The names are FCEUX's (`src/ines.cpp`) where it has one. Names marked † are from memory and should be checked against the mapper's NESdev page before implementing.
 
@@ -39,13 +41,7 @@ The makers come from the icons in the NESdev wiki's iNES 1.0 mapper grid (the Se
 | 145 | Sachen | SA-72007 | |
 | 147 | Sachen | TCU01 | |
 | 149 | Sachen | SA-0036 | |
-| 152 | Bandai | Bandai/Taito discrete board with one-screen mirroring | |
-| 153 | Bandai | Bandai FCG with SRAM | Close to mapper 16 |
-| 154 | Namco | Namcot 108 with one-screen mirroring † | Devil Man |
-| 155 | Nintendo | MMC1A | MMC1 without the WRAM disable bit; almost free to add on top of mapper 1 |
-| 157 | Bandai | Bandai Datach barcode reader | |
 | 158 | Tengen | 800037 † | Alien Syndrome |
-| 159 | Bandai | Bandai FCG with 24C01 EEPROM | Close to mapper 16 |
 | 175 | Kaiser | (unnamed in FCEUX) | |
 | 186 | generic | Fukutake Study Box | |
 | 196 | pirate | (unnamed in FCEUX) | MMC3 pirate † |
@@ -53,9 +49,7 @@ The makers come from the icons in the NESdev wiki's iNES 1.0 mapper grid (the Se
 | 203 | pirate | (unnamed in FCEUX) | Multicart † |
 | 204 | pirate | (unnamed in FCEUX) | Multicart † |
 | 205 | pirate MMC3 | JC-016-2 | MMC3 multicart |
-| 207 | Taito | Taito X1-005 rev. B | Variant of mapper 80 |
 | 208 | Supertone | (unnamed in FCEUX) | MMC3 pirate † |
-| 210 | Namco | Namcot 175/340 | Close to mapper 19 |
 | 214 | pirate | (unnamed in FCEUX) | Multicart † |
 | 215 | Realtec | UNL-8237 | MMC3 variant |
 | 217 | pirate | (unnamed in FCEUX) | MMC3 multicart † |
@@ -75,4 +69,4 @@ The NES 2.0 header format extends mapper numbers to 4095 and adds submappers. Th
 
 ## Where to start
 
-The cheapest wins are the variants of mappers that already exist. Mapper 155 is mapper 1 with one register bit ignored; 153 and 159 are variants of mapper 16; 210 is close to mapper 19; 207 is close to mapper 80; and 154 is a Namcot 108 board like mappers 88 and 206. After those, mapper 30 (UNROM 512) matters most for current homebrew, and 29, 31 and 218 are small homebrew boards too.
+Mapper 30 (UNROM 512) matters most for current homebrew, and 29, 31 and 218 are small homebrew boards too. Among the rest, the MMC3 variants and multicarts (37, 205, 215, 219, 238, 250 and friends) mostly reuse mapper 4's logic with different register decoding or an outer bank register on top.

@@ -113,6 +113,9 @@
 #include "Mapper188.h"
 #include "Mapper189.h"
 #include "Mapper206.h"
+#include "Mapper154.h"
+#include "Mapper207.h"
+#include "Mapper210.h"
 #include "Mapper243.h"
 
 #include "MapperNSF.h"
@@ -315,6 +318,9 @@
 #include "Mapper187.cpp"
 #include "Mapper188.cpp"
 #include "Mapper189.cpp"
+#include "Mapper154.cpp"
+#include "Mapper207.cpp"
+#include "Mapper210.cpp"
 #include "Mapper243.cpp"
 
 #include "MapperNSF.cpp"
@@ -732,6 +738,17 @@ Mapper*	CreateMapper( NES* parent, INT no, BOOL bUnif )
 			return new Mapper140(parent);
 		case	142:
 			return new Mapper142(parent);
+		case	152:	// Bandai 74161 with one-screen mirroring
+			return new Mapper070(parent);
+		case	153:	// Bandai LZ93D50 with SRAM
+		case	157:	// Bandai Datach Joint ROM System
+		case	159:	// Bandai LZ93D50 with 24C01
+			return new Mapper016(parent, no);
+		case	154:
+			return new Mapper154(parent);
+		case	155:	// MMC1A: MMC1 without the WRAM disable bit, which
+				// Mapper001 doesn't emulate anyway
+			return new Mapper001(parent);
 		case	160:
 			return new Mapper160(parent);
 		case	162:
@@ -758,8 +775,12 @@ Mapper*	CreateMapper( NES* parent, INT no, BOOL bUnif )
 		case	199:
 			//return new fceuMMC3(parent,199);
 			return new Mapper199(parent);
+		case	207:
+			return new Mapper207(parent);
 		case	209:
 			return new Mapper209(parent);
+		case	210:
+			return new Mapper210(parent);
 		case	211:
 			return new Mapper211(parent);
 		case	220:

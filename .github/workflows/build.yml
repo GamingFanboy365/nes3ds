@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -24,6 +24,10 @@ jobs:
       - name: Smoke test in Azahar
         run: tools/azahar/smoketest.py
 
+      # Generated test ROMs for the mappers added in this fork.
+      - name: Mapper tests in Azahar
+        run: tools/azahar/mappertest.py
+
       - name: Upload build
         uses: actions/upload-artifact@v4
         with:
@@ -34,11 +38,13 @@ jobs:
             virtuanes_3ds.smdh
             virtuanes_3ds_top.png
 
-      - name: Upload smoke test screenshots and logs
+      - name: Upload test screenshots and logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: smoketest
-          path: .azahar/smoketest/
+          name: tests
+          path: |
+            .azahar/smoketest/
+            .azahar/mappertest/
           include-hidden-files: true
           if-no-files-found: ignore

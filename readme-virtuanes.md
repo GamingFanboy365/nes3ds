@@ -57,6 +57,7 @@ It also runs on your New 3DS as well!
 - Builds with current devkitARM (libctru 2.x) on Linux, macOS and Windows.
 - The top screen always runs in 2D mode (the 3D slider no longer changes it).
 - Runs in the Azahar and Citra emulators (without sound).
+- New mappers: 152, 153 (Famicom Jump II), 154 (Devil Man), 155 (MMC1A), 157 (Datach, without the barcode reader), 159 (Bandai 24C01 EEPROM games), 207 (Fudou Myouou Den) and 210 (Namco 175/340: Family Circuit '91, Splatterhouse Wanpaku Graffiti, Famista '92-'94 and others).
 - The CIA now has a title version (1.0.3), so it installs as an upgrade of older versions.
 
 ### v1.02
