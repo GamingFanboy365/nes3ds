@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <vector>
+#include <string>
+#include <cctype>
 
 #include <unistd.h>
 #include <string.h>

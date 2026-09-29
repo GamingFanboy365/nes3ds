@@ -4,13 +4,20 @@
 #include "TypeDef.h"
 #include "DebugOut.h"
 
+#ifdef _3DS
+#include <3ds.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
+#endif
+
 CDebugOut	Dbg;
 
 static const CHAR szClassName[] = "DebugWindow_wndclass";
 
 CDebugOut::CDebugOut()
 {
-#if	defined(_DEBUG) || defined(_DEBUGOUT)
+#if	(defined(_DEBUG) || defined(_DEBUGOUT)) && !defined(_3DS)
 	hWndDebugOutput = ::FindWindow( szClassName, NULL );
 	if( !hWndDebugOutput ) {
 		::OutputDebugString( "DebugWindow �������܂���\n" );
@@ -20,7 +27,7 @@ CDebugOut::CDebugOut()
 
 void CDebugOut::Clear()
 {
-#if	defined(_DEBUG) || defined(_DEBUGOUT)
+#if	(defined(_DEBUG) || defined(_DEBUGOUT)) && !defined(_3DS)
 	if( hWndDebugOutput ) {
 		if( ::IsWindow( hWndDebugOutput ) ) {
 			::SendMessage( hWndDebugOutput, WM_APP+1, (WPARAM)NULL, (LPARAM)NULL );
@@ -35,6 +42,24 @@ void __cdecl CDebugOut::Out( LPSTR fmt, ... )
 	CHAR	buf[1000];
 	va_list	va;
 	va_start( va, fmt );
+#ifdef _3DS
+	// Shows up in the emulator's log (Azahar: Debug.Emulated), one entry
+	// per line. (A zero length output means something else to the GDB stub.)
+	static CHAR line[1000];
+	static INT lineLen = 0;
+	::vsnprintf( buf, sizeof(buf), fmt, va );
+	va_end( va );
+	for( CHAR* p = buf; *p; p++ ) {
+		if( *p == '\n' || lineLen == sizeof(line) ) {
+			if( lineLen )
+				svcOutputDebugString( line, lineLen );
+			lineLen = 0;
+			if( *p == '\n' )
+				continue;
+		}
+		line[lineLen++] = *p;
+	}
+#else
 	::vsprintf( buf, fmt, va );
 
 	if( hWndDebugOutput ) {
@@ -51,6 +76,7 @@ void __cdecl CDebugOut::Out( LPSTR fmt, ... )
 	} else {
 		::OutputDebugString( buf );
 	}
+#endif
 #endif
 }
 

@@ -258,6 +258,9 @@ Result snd3dsPlaySound(int chn, u32 flags, u32 sampleRate, float vol, float pan,
 //---------------------------------------------------------
 void snd3dsStartPlaying()
 {
+    if (snd3DS.audioType != 1)
+        return;
+
     if (!snd3DS.isPlaying)
     {
         for (int i = 0; i < SAMPLEBUFFER_SIZE; i++)
@@ -343,6 +346,12 @@ bool snd3dsInitialize()
 {
     snd3DS.isPlaying = false;
     snd3DS.audioType = 0;
+
+    // Emulators (Azahar, Citra) only stub CSND: it plays nothing, and
+    // waiting on its commands can hang. Run without sound there.
+    if (!emulator.isReal3DS)
+        return true;
+
     Result ret = 0;
     ret = csndInit();
 

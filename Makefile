@@ -42,10 +42,10 @@ INCLUDES	:=	include \
 			src/cores/virtuanes \
 			src/cores/virtuanes/3ds \
 			src/cores/virtuanes/NES \
-			src/cores/virtuanes/NES/apuex \
-			src/cores/virtuanes/NES/apuex/emu2413 \
-			src/cores/virtuanes/NES/mapper \
-			src/cores/virtuanes/NES/padex
+			src/cores/virtuanes/NES/ApuEX \
+			src/cores/virtuanes/NES/ApuEX/emu2413 \
+			src/cores/virtuanes/NES/Mapper \
+			src/cores/virtuanes/NES/PadEX
 #ROMFS		:=	src/cores/virtuanes/romfs
 
 #---------------------------------------------------------------------------------
@@ -58,7 +58,13 @@ CFLAGS	:=	-g -w -O3 -mword-relocations -finline-limit=20000 \
 			-fno-rtti -fomit-frame-pointer -ffunction-sections -fpermissive \
 			$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -D__GNUC__ -DHAVE_ASPRINTF -DUSE_FILE32API -DLIBCTRU_1_0_0
+CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -DHAVE_ASPRINTF -DUSE_FILE32API
+
+# make DEBUGOUT=1 sends VirtuaNES's DEBUGOUT() traces to svcOutputDebugString,
+# which emulators such as Azahar print to their log.
+ifeq ($(DEBUGOUT),1)
+CFLAGS	+=	-D_DEBUGOUT
+endif
 
 CXXFLAGS	:= $(CFLAGS)  -fno-exceptions -std=gnu++11
 
@@ -98,8 +104,8 @@ CPPFILES	:=	$(foreach file,$(notdir $(wildcard src/3ds/*.cpp)),					3ds/$(file))
 			$(foreach file,$(notdir $(wildcard src/cores/virtuanes/*.cpp)),				cores/virtuanes/$(file)) \
 			$(foreach file,$(notdir $(wildcard src/cores/virtuanes/3ds/*.cpp)),			cores/virtuanes/3ds/$(file)) \
 			$(foreach file,$(notdir $(wildcard src/cores/virtuanes/NES/*.cpp)), 			cores/virtuanes/NES/$(file)) \
-			$(foreach file,$(notdir $(wildcard src/cores/virtuanes/NES/apuex/*.cpp)), 		cores/virtuanes/NES/apuex/$(file)) \
-			$(foreach file,$(notdir $(wildcard src/cores/virtuanes/NES/apuex/emu2413/*.cpp)), 	cores/virtuanes/NES/apuex/emu2413/$(file)) \
+			$(foreach file,$(notdir $(wildcard src/cores/virtuanes/NES/ApuEX/*.cpp)), 		cores/virtuanes/NES/ApuEX/$(file)) \
+			$(foreach file,$(notdir $(wildcard src/cores/virtuanes/NES/ApuEX/emu2413/*.cpp)), 	cores/virtuanes/NES/ApuEX/emu2413/$(file)) \
 
 
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
@@ -197,11 +203,11 @@ $(BUILD):
 	[ -d build/3ds/zlib ] 				|| mkdir -p build/3ds/zlib
 	[ -d build/cores/virtuanes ] 			|| mkdir -p build/cores/virtuanes
 	[ -d build/cores/virtuanes/3ds ] 		|| mkdir -p build/cores/virtuanes/3ds
-	[ -d build/cores/virtuanes/NES/apuex ] 		|| mkdir -p build/cores/virtuanes/NES/apuex
-	[ -d build/cores/virtuanes/NES/apuex/emu2413 ] 	|| mkdir -p build/cores/virtuanes/NES/apuex/emu2413	
-	[ -d build/cores/virtuanes/NES/mapper ] 	|| mkdir -p build/cores/virtuanes/NES/mapper
-	[ -d build/cores/virtuanes/NES/padex ] 		|| mkdir -p build/cores/virtuanes/NES/padex
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/virtuanes-make
+	[ -d build/cores/virtuanes/NES/ApuEX ] 		|| mkdir -p build/cores/virtuanes/NES/ApuEX
+	[ -d build/cores/virtuanes/NES/ApuEX/emu2413 ] 	|| mkdir -p build/cores/virtuanes/NES/ApuEX/emu2413	
+	[ -d build/cores/virtuanes/NES/Mapper ] 	|| mkdir -p build/cores/virtuanes/NES/Mapper
+	[ -d build/cores/virtuanes/NES/PadEX ] 		|| mkdir -p build/cores/virtuanes/NES/PadEX
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 cia: $(BUILD)
@@ -215,7 +221,7 @@ endif
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(TARGET).elf
+	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(TARGET).elf $(TARGET).cia
 
 
 #---------------------------------------------------------------------------------

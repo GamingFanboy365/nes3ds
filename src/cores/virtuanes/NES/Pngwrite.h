@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "zlib.h"
-#include "typedef.h"
-#include "macro.h"
+#include "TypeDef.h"
+#include "Macro.h"
 
 class	PNGWRITE
 {

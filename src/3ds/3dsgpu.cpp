@@ -24,13 +24,6 @@
 bool somethingWasDrawn = false;
 bool somethingWasFlushed = false;
 
-extern u8* gfxTopRightFramebuffers[2];
-extern u8* gfxTopLeftFramebuffers[2];
-u8* gfxOldTopRightFramebuffers[2];
-
-extern "C" void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id);
-extern "C" void gfxWriteFramebufferInfo(gfxScreen_t screen);
-
 bool isNew3DS = false;
 
 /*
@@ -154,8 +147,12 @@ void gpu3dsSetParallaxBarrier(bool enable)
 
 
 //---------------------------------------------------------
-// Sets the 2D screen mode based on the 3D slider.
-// Taken from RetroArch.
+// Keeps the parallax barrier off regardless of the 3D slider.
+//
+// The top screen runs in 2D mode (gfxSet3D(false)), so there
+// are no right-eye framebuffers to manage. (With libctru 1.x
+// this used to alias the right-eye framebuffers to the left
+// ones instead.)
 //---------------------------------------------------------
 float prevSliderVal = -1;
 void gpu3dsCheckSlider()
@@ -163,33 +160,7 @@ void gpu3dsCheckSlider()
     float sliderVal = *(float*)0x1FF81080;
 
     if (sliderVal != prevSliderVal)
-    {
-        gfxTopRightFramebuffers[0] = gfxTopLeftFramebuffers[0];
-        gfxTopRightFramebuffers[1] = gfxTopLeftFramebuffers[1];
-        
-        if (sliderVal == 0)
-        {
-            gpu3dsSetParallaxBarrier(false);
-        }
-        else if (sliderVal < 0.3)
-        {
-            if (!isNew3DS)
-            {
-                gfxTopRightFramebuffers[0] = gfxOldTopRightFramebuffers[0];
-                gfxTopRightFramebuffers[1] = gfxOldTopRightFramebuffers[1];
-            }
-            gpu3dsSetParallaxBarrier(false);
-        }
-        else if (sliderVal < 0.6)
-            gpu3dsSetParallaxBarrier(false);
-        else
-            gpu3dsSetParallaxBarrier(true);
-
-        u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-        int b = fb == gfxTopLeftFramebuffers[0] ? 0 : 1;
-        gfxSetFramebufferInfo(GFX_TOP, b);
-        gfxWriteFramebufferInfo(GFX_TOP);
-    }
+        gpu3dsSetParallaxBarrier(false);
     prevSliderVal = sliderVal;
 }
 
@@ -981,30 +952,6 @@ void gpu3dsSetRenderTargetToTextureSpecific(SGPUTexture *texture, SGPUTexture *d
 }
 
 
-extern Handle gspEvents[GSPGPU_EVENT_MAX];
-
-bool gpu3dsCheckEvent(GSPGPU_Event id)
-{
-	Result res = svcWaitSynchronization(gspEvents[id], 0);
-	if (!res)
-	{
-		svcClearEvent(gspEvents[id]);
-		return true;
-	}
-	
-	return false;
-}
-
-
-void gpu3dsWaitEvent(GSPGPU_Event id, u64 timeInMilliseconds)
-{
-	//Result res = svcWaitSynchronization(gspEvents[id], timeInMilliseconds * 1000000);
-	//if (!res)
-	//	svcClearEvent(gspEvents[id]);
-    svcWaitSynchronization(gspEvents[id], timeInMilliseconds * 1000000);
-	svcClearEvent(gspEvents[id]);
-}
-
 void gpu3dsFlush()
 {
     u32 offset;
@@ -1145,22 +1092,11 @@ bool gpu3dsInitialize()
     gfxInit	(GPU3DS.screenFormat, GPU3DS.screenFormat, false);
 	GPU_Init(NULL);
 
-	gfxSet3D(true);
+	gfxSet3D(false);
 
-    u8 val = 0;
+    bool val = false;
     APT_CheckNew3DS(&val);
-    isNew3DS = (val != 0);
-
-    gfxOldTopRightFramebuffers[0] = gfxTopRightFramebuffers[0];
-    gfxOldTopRightFramebuffers[1] = gfxTopRightFramebuffers[1];
-    for (int i = 0; i < 400 * 240 * 4; i++)
-    {
-        gfxOldTopRightFramebuffers[0][i] = 0;
-        gfxOldTopRightFramebuffers[1][i] = 0;
-    }
-
-    gfxTopRightFramebuffers[0] = gfxTopLeftFramebuffers[0];
-    gfxTopRightFramebuffers[1] = gfxTopLeftFramebuffers[1];
+    isNew3DS = val;
 
     // Create the frame and depth buffers for the top screen.
     //
@@ -1188,7 +1124,7 @@ bool gpu3dsInitialize()
 
     // Create the command buffers
     //
-    gpuCommandBufferSize = COMMAND_BUFFER_SIZE;
+    gpuCommandBufferSize = COMMAND_BUFFER_SIZE / 2 / 4;     // in words
     gpuCommandBuffer1 = (u32 *)linearAlloc(COMMAND_BUFFER_SIZE / 2);
     gpuCommandBuffer2 = (u32 *)linearAlloc(COMMAND_BUFFER_SIZE / 2);
     if (gpuCommandBuffer1 == NULL || gpuCommandBuffer2 == NULL)
@@ -1201,7 +1137,10 @@ bool gpu3dsInitialize()
 #endif
 
 #ifdef EMU_RELEASE
-    emulator.isReal3DS = true;
+    // Citra and its forks (Azahar, Lime3DS) answer this system info
+    // query with a non-zero emulator ID; real hardware returns an error.
+    s64 emulatorId = 0;
+    emulator.isReal3DS = !(R_SUCCEEDED(svcGetSystemInfo(&emulatorId, 0x20000, 0)) && emulatorId != 0);
 #else
     if (file3dsGetCurrentDir()[0] != '/')
         emulator.isReal3DS = true;
@@ -1296,10 +1235,5 @@ void gpu3dsFinalize()
     printf("gfxExit:\n");
 #endif
 
-    // Restore the old frame buffers so that gfxExit can properly
-    // free them.
-    //
-    gfxTopRightFramebuffers[0] = gfxOldTopRightFramebuffers[0];
-    gfxTopRightFramebuffers[1] = gfxOldTopRightFramebuffers[1];
 	gfxExit();
 }
