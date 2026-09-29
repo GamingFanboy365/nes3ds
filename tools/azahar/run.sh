@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Runs virtuanes_3ds.3dsx in the Azahar 3DS emulator, inside Docker
+# Runs virtuanes_3ds.3dsx (or .cia) in the Azahar 3DS emulator, inside Docker
 # (linuxserver/azahar image), for debugging without real hardware.
 #
 set -euo pipefail
@@ -14,8 +14,10 @@ Runs virtuanes_3ds.3dsx in the Azahar 3DS emulator inside Docker.
 Options:
   -r, --rom FILE      put FILE on the emulated SD card (repeatable). The SD card
                       is emptied of NES/FDS/NSF files first, so with a single ROM
-                      "key:a" at the ROM menu loads it.
-  -a, --app FILE      .3dsx to run (default: virtuanes_3ds.3dsx)
+                      "key:a" at the ROM menu loads it. (With a .cia, the
+                      "Nintendo 3DS" folder comes first, so "key:down key:a".)
+  -a, --app FILE      .3dsx to run (default: virtuanes_3ds.3dsx), or a .cia,
+                      which is installed and then launched like from the Home Menu
   -o, --out DIR       where screenshots and the log go (default: .azahar/out)
   -g, --gdb [PORT]    start Azahar's GDB stub on 127.0.0.1:PORT (default 24689);
                       the app waits for the debugger before it starts
@@ -88,18 +90,23 @@ if [ "$GUI" = 0 ] || [ ! -f "$CONF" ]; then
 fi
 
 find "$SDMC" -maxdepth 1 -type f \( -iname '*.nes' -o -iname '*.fds' -o -iname '*.nsf' \) -delete
+# Headless runs also start without installed titles, so the ROM menu
+# only has the "Nintendo 3DS" folder (listed first) when running a .cia.
+[ "$GUI" = 1 ] || rm -rf "$SDMC/Nintendo 3DS"
 for rom in ${ROMS[@]+"${ROMS[@]}"}; do
     cp "$rom" "$SDMC/"
 done
-cp "$APP" "$WORK/app.3dsx"
+case "$APP" in *.cia|*.CIA) EXT=cia ;; *) EXT=3dsx ;; esac
+rm -f "$WORK/app.3dsx" "$WORK/app.cia"
+cp "$APP" "$WORK/app.$EXT"
 
 DOCKER_ARGS=(--rm -i
     -u "$(id -u):$(id -g)"
     -e HOME=/config
     -v "$HOMEDIR:/config"
-    -v "$WORK/app.3dsx:/app.3dsx:ro"
+    -v "$WORK/app.$EXT:/app.$EXT:ro"
     -v "$OUT:/out"
-    -v "$ROOT/tools/azahar/headless.sh:/headless.sh:ro"
+    -v "$ROOT/tools/azahar/container.sh:/container.sh:ro"
     --entrypoint bash)
 AZAHAR_ARGS=()
 if [ -n "$GDB_PORT" ]; then
@@ -120,8 +127,8 @@ if [ "$GUI" = 1 ]; then
         DOCKER_ARGS+=(-e XAUTHORITY=/tmp/.Xauthority -v "$HOME/.Xauthority:/tmp/.Xauthority:ro")
     fi
     exec docker run "${DOCKER_ARGS[@]}" \
-        "$IMAGE" -c 'exec azahar "$@" /app.3dsx' azahar ${AZAHAR_ARGS[@]+"${AZAHAR_ARGS[@]}"}
+        "$IMAGE" /container.sh gui 0 "${AZAHAR_ARGS[*]:-}" "/app.$EXT"
 fi
 
-docker run "${DOCKER_ARGS[@]}" "$IMAGE" /headless.sh "$TIMEOUT" \
-    "${AZAHAR_ARGS[*]:-}" ${STEPS[@]+"${STEPS[@]}"}
+docker run "${DOCKER_ARGS[@]}" "$IMAGE" /container.sh headless "$TIMEOUT" \
+    "${AZAHAR_ARGS[*]:-}" "/app.$EXT" ${STEPS[@]+"${STEPS[@]}"}

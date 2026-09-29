@@ -53,6 +53,13 @@ It also runs on your New 3DS as well!
 
 *VirtuaNES:*
 
+### v1.03
+- Builds with current devkitARM (libctru 2.x) on Linux, macOS and Windows.
+- The top screen always runs in 2D mode (the 3D slider no longer changes it).
+- Runs in the Azahar and Citra emulators (without sound).
+- New mappers: 152, 153 (Famicom Jump II), 154 (Devil Man), 155 (MMC1A), 157 (Datach, without the barcode reader), 159 (Bandai 24C01 EEPROM games), 207 (Fudou Myouou Den) and 210 (Namco 175/340: Family Circuit '91, Splatterhouse Wanpaku Graffiti, Famista '92-'94 and others).
+- The CIA now has a title version (1.0.3), so it installs as an upgrade of older versions.
+
 ### v1.02
 - Fixed bug in MMC5 mapper that was causing Castlevania 3's graphics to corrupt.
 - Optimized rendering to 16-bit buffer to reduce cache misses, and minor optimizations for MMC5 rendering.

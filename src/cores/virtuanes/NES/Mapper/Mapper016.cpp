@@ -85,6 +85,21 @@ void	Mapper016::Reset()
 		eeprom_type = 2;
 	}
 
+	switch( board ) {
+		case	153:	// LZ93D50 with SRAM
+			patch = 1;
+			eeprom_type = 0xFF;
+			break;
+		case	157:	// Datach Joint ROM System
+			patch = 0;
+			eeprom_type = 2;
+			break;
+		case	159:	// LZ93D50 with 24C01
+			patch = 0;
+			eeprom_type = 0;
+			break;
+	}
+
 	if( eeprom_type == 0 ) {
 		nes->SetSAVERAM_SIZE( 128 );
 		x24c01.Reset( WRAM );

@@ -42,6 +42,10 @@ tools/azahar/gdb.sh
 
 `tools/azahar/smoketest.py` checks the whole setup end to end. It builds a tiny test ROM that shows a blue screen and turns it red while A is held, runs it in Azahar and checks the screenshots.
 
+`tools/azahar/mappertest.py` does the same for mappers: it generates a test ROM per mapper whose code sets the mapper's registers and checks what the CPU and PPU then see (every PRG and CHR bank starts with its own number) and how the nametables are mirrored. The screen turns green when every check passes, and red otherwise. Pass mapper numbers to run only those, e.g. `tools/azahar/mappertest.py 210`.
+
 ## Adding a mapper
 
 Mappers live in `src/cores/virtuanes/NES/Mapper`, one class per mapper (`MapperNNN.h` and `MapperNNN.cpp`) deriving from `Mapper`. They are compiled as part of `src/cores/virtuanes/NES/MapperFactory.cpp`, which `#include`s every mapper header and source file, and whose `CreateMapper()` maps iNES mapper numbers (and UNIF board names) to the classes. So a new mapper needs its two files plus the two `#include`s and a `case` in `CreateMapper()`. The existing mappers such as `Mapper003` (CNROM) are the best reference for the bank switching helpers (`SetPROM_8K_Bank()`, `SetVROM_1K_Bank()` and friends).
+
+To test a new mapper, add a test function and a `TESTS` entry to `tools/azahar/mappertest.py`. [docs/mappers.md](docs/mappers.md) lists the iNES mappers that VirtuaNES doesn't support yet, and which ones are the easiest to add.

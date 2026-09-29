@@ -6,7 +6,9 @@
 class	Mapper016 : public Mapper
 {
 public:
-	Mapper016( NES* parent ) : Mapper(parent) {}
+	// board: the iNES mapper number. 153, 157 and 159 are Bandai boards
+	// that mapper 16 otherwise only recognises by CRC.
+	Mapper016( NES* parent, INT board = 16 ) : Mapper(parent) { this->board = board; }
 
 	void	Reset();
 	BYTE	ReadLow( WORD addr );
@@ -25,6 +27,7 @@ public:
 	void	LoadState( LPBYTE p );
 
 protected:
+	INT	board;
 	BYTE	patch;	// For Famicom Jump 2
 	BYTE	eeprom_type;	// EEPROM type
 

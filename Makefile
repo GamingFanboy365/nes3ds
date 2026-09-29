@@ -30,6 +30,11 @@ include $(DEVKITARM)/3ds_rules
 APP_TITLE	:=	VirtuaNES for 3DS
 APP_DESCRIPTION	:=	High compatibility NES emulator for your old 3DS / 2DS.
 APP_AUTHOR	:=	bubble2k16
+# Version shown in the app, and the CIA's title version (major.minor.micro,
+# so 1.03 is 1.0.3), which lets a CIA install as an upgrade of an older one.
+VERSION_MAJOR	:=	1
+VERSION_MINOR	:=	0
+VERSION_MICRO	:=	3
 ASSETS		:=	src/cores/virtuanes/assets
 ICON		:=	$(ASSETS)/icon.png
 TARGET		:=	virtuanes_3ds
@@ -58,7 +63,8 @@ CFLAGS	:=	-g -w -O3 -mword-relocations -finline-limit=20000 \
 			-fno-rtti -fomit-frame-pointer -ffunction-sections -fpermissive \
 			$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -DHAVE_ASPRINTF -DUSE_FILE32API
+CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -DHAVE_ASPRINTF -DUSE_FILE32API \
+			-DVERSION_STRING=\"$(VERSION_MAJOR).$(VERSION_MINOR)$(VERSION_MICRO)\"
 
 # make DEBUGOUT=1 sends VirtuaNES's DEBUGOUT() traces to svcOutputDebugString,
 # which emulators such as Azahar print to their log.
@@ -71,7 +77,7 @@ CXXFLAGS	:= $(CFLAGS)  -fno-exceptions -std=gnu++11
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lcitro3d -lctru -lm
+LIBS	:= -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -212,7 +218,8 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 cia: $(BUILD)
 ifneq ($(MAKEROM),)
-	$(MAKEROM) -rsf $(ASSETS)/cia.rsf -elf $(OUTPUT).elf -icon $(ASSETS)/cia.icn -banner $(ASSETS)/cia.bnr -f cia -o $(OUTPUT).cia
+	$(MAKEROM) -rsf $(ASSETS)/cia.rsf -elf $(OUTPUT).elf -icon $(ASSETS)/cia.icn -banner $(ASSETS)/cia.bnr -f cia -o $(OUTPUT).cia \
+		-ver $$(( ($(VERSION_MAJOR) << 10) | ($(VERSION_MINOR) << 4) | $(VERSION_MICRO) ))
 else
 	$(error "CIA creation is not supported on this platform ($(UNAME_S)_$(UNAME_M))")
 endif

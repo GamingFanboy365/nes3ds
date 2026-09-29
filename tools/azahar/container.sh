@@ -2,13 +2,37 @@
 #
 # Runs inside the linuxserver/azahar container; started by run.sh.
 #
-#   headless.sh TIMEOUT "AZAHAR ARGS" [STEP...]
+#   container.sh gui|headless TIMEOUT "AZAHAR ARGS" APP [STEP...]
+#
+# APP is a .3dsx, or a .cia, which gets installed to the emulated SD card
+# first and then booted from there like the Home Menu would.
 #
 set -uo pipefail
 
-TIMEOUT="$1"
-AZAHAR_ARGS="$2"
-shift 2
+MODE="$1"
+TIMEOUT="$2"
+AZAHAR_ARGS="$3"
+APP="$4"
+shift 4
+
+install_cia() {
+    local titles="/config/.local/share/azahar-emu/sdmc/Nintendo 3DS"
+    if ! azahar -i "$APP" >/tmp/azahar_install.txt 2>&1; then
+        echo "Installing $(basename "$APP") failed:" >&2
+        cat /tmp/azahar_install.txt >&2
+        exit 1
+    fi
+    # The most recently installed application's content.
+    APP=$(find "$titles" -path '*/title/00040000/*/content/*.app' -printf '%T@ %p\n' \
+        | sort -n | tail -1 | cut -d' ' -f2-)
+    echo "installed: ${APP#"$titles"/*/*/}"
+}
+
+if [ "$MODE" = gui ]; then
+    case "$APP" in *.cia) install_cia ;; esac
+    # shellcheck disable=SC2086
+    exec azahar $AZAHAR_ARGS "$APP"
+fi
 
 # Azahar's default keyboard mapping for the 3DS buttons.
 declare -A KEYS=(
@@ -33,8 +57,10 @@ for _ in $(seq 50); do
     sleep 0.1
 done
 
+case "$APP" in *.cia) install_cia ;; esac
+
 # shellcheck disable=SC2086
-azahar $AZAHAR_ARGS /app.3dsx >/tmp/azahar_stdout.txt 2>&1 &
+azahar $AZAHAR_ARGS "$APP" >/tmp/azahar_stdout.txt 2>&1 &
 AZ=$!
 
 finish() {
